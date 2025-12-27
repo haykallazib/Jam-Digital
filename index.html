@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jam LED Glow Pulse</title>
+    <style>
+      @import url("https://fonts.cdnfonts.com/css/ds-digital");
+
+      body {
+        background-color: black;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      canvas {
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.1),
+          0 0 60px rgba(255, 255, 255, 0.05);
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="clockCanvas"></canvas>
+
+    <script>
+      const canvas = document.getElementById("clockCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Ukuran canvas responsif
+      function resizeCanvas() {
+        const size = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+        canvas.width = size;
+        canvas.height = size / 3;
+      }
+
+      // Warna acak terang (170-255)
+      function getRandomColor() {
+        const r = Math.floor(Math.random() * 86) + 170;
+        const g = Math.floor(Math.random() * 86) + 170;
+        const b = Math.floor(Math.random() * 86) + 170;
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      // Efek glow berdenyut
+      let pulseState = 0;
+      let pulseGrow = true;
+      let currentColor = getRandomColor();
+
+      // Format waktu dua digit
+      function formatTime(num) {
+        return num < 10 ? "0" + num : num;
+      }
+
+      // Gambar jam dengan efek
+      function drawClock() {
+        const now = new Date();
+        const timeStr =
+          formatTime(now.getHours()) +
+          ":" +
+          formatTime(now.getMinutes()) +
+          ":" +
+          formatTime(now.getSeconds());
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Update efek glow
+        if (pulseGrow) {
+          pulseState += 0.8;
+          if (pulseState >= 15) pulseGrow = false;
+        } else {
+          pulseState -= 0.8;
+          if (pulseState <= 0) {
+            pulseGrow = true;
+            currentColor = getRandomColor();
+          }
+        }
+
+        // Teks dengan glow
+        ctx.shadowBlur = pulseState;
+        ctx.shadowColor = currentColor;
+        ctx.fillStyle = currentColor;
+        ctx.font = `bold ${canvas.width / 6}px 'DS-Digital', monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.fillText(timeStr, canvas.width / 2, canvas.height / 2);
+
+        // Reset shadow untuk elemen lain
+        ctx.shadowBlur = 0;
+
+        // Gambar border glow
+        ctx.strokeStyle = currentColor;
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = pulseState * 1.5;
+        ctx.shadowColor = currentColor;
+        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+      }
+
+      // Loop animasi
+      function animate() {
+        drawClock();
+        requestAnimationFrame(animate);
+      }
+
+      // Inisialisasi
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        drawClock();
+      });
+
+      // Mulai
+      resizeCanvas();
+      animate();
+
+      // Update warna setiap 3 detik juga
+      setInterval(() => {
+        currentColor = getRandomColor();
+      }, 3000);
+    </script>
+  </body>
+</html>
